@@ -1,0 +1,6 @@
+{
+    "compilerOptions": {
+        "baseUrl": "./src",
+        "lib": ["es2020", "dom"],
+    }
+}
