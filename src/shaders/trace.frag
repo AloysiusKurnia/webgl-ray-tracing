@@ -130,9 +130,8 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
             incomingLight += emittedLight * rayColor;
             break;
         }
-        direction = randomHemisphereDirection(randomState, traceResult.normal);
-        float lightStrength = dot(traceResult.normal, direction);
-        rayColor *= material.color * 2. * lightStrength;
+        direction = normalize(traceResult.normal + randomDirection(randomState));
+        rayColor *= material.color;
 
         raySource = traceResult.newOrigin;
     }

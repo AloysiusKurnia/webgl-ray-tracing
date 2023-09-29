@@ -15,7 +15,7 @@ interface Sphere {
     emissionStrength?: number;
 };
 
-const bounceLimit = 3, raysPerPixel = 20, maxIteration = 100;
+const bounceLimit = 3, raysPerPixel = 30, maxIteration = 50;
 
 function createTextureArrayFromTris(data: TriData) {
     const { tris, verts, colors } = data;
@@ -56,10 +56,10 @@ const octahedron = {
         [-1, +1, +1],
         [-1, +1, -1],
 
-        [+.5, .99, +.5],
-        [+.5, .99, -.5],
-        [-.5, .99, +.5],
-        [-.5, .99, -.5],
+        [+.3, .99, +.3],
+        [+.3, .99, -.3],
+        [-.3, .99, +.3],
+        [-.3, .99, -.3],
     ],
     colors: [
         [1, 0, 0],
@@ -91,8 +91,8 @@ const octahedron = {
 
         { vert: [12, 11, 13], color: 5, emissionStrength: -1 },
         { vert: [13, 14, 12], color: 5, emissionStrength: -1 },
-        { vert: [16, 15, 17], color: 5, emissionStrength: 8 },
-        { vert: [17, 18, 16], color: 5, emissionStrength: 8 },
+        { vert: [16, 15, 17], color: 5, emissionStrength: 25 },
+        { vert: [17, 18, 16], color: 5, emissionStrength: 25 },
         // 12 left
     ]
 } as TriData;
