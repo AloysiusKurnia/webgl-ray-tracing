@@ -84,8 +84,8 @@ TraceOutput singleTrace(vec3 lineOrigin, vec3 direction) {
     vec3 newOrigin = distanceToNearestShape * direction + lineOrigin;
     vec3 normal;
     vec3[3] verts = getTri(nearestShapeIndex);
-        normal = cross(verts[1] - verts[0], verts[2] - verts[0]);
-        normal /= length(normal);
+    normal = cross(verts[1] - verts[0], verts[2] - verts[0]);
+    normal /= length(normal);
     return TraceOutput(nearestShapeIndex, newOrigin, normal);
 }
 
@@ -98,12 +98,10 @@ float random(inout uint state) {
 }
 
 vec3 randomDirection(inout uint randomState) {
-    float u = random(randomState);
-    float v = random(randomState);
-    float theta = u * 2.0 * PI;
-    float cosPhi = 2.0 * v - 1.0;
-    float sinTheta = sin(theta);
-    return vec3(sinTheta * cosPhi, sinTheta * sqrt(1.0 - cosPhi * cosPhi), cos(theta));
+    float z = 2.0 * random(randomState) - 1.0;
+    float angle = random(randomState) * 2.0 * PI;
+    float sliceRadius = sqrt(1.0 - z * z);
+    return vec3(sliceRadius * sin(angle), sliceRadius * cos(angle), z);
 }
 
 vec3 randomHemisphereDirection(inout uint randomState, vec3 normal) {
@@ -120,23 +118,23 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
         TraceOutput traceResult = singleTrace(raySource, direction);
 
         if(traceResult.hitGeometryIndex == -1) {
+            outColor = vec4(0, 0, 0, 1);
+            return incomingLight;
             break;
         }
-
-        Material material  = triMaterial(traceResult.hitGeometryIndex);
+        Material material = triMaterial(traceResult.hitGeometryIndex);
 
         // assuming emission and diffusive materials are two completely different things
         if(material.emissionStrength > 0.) {
             vec3 emittedLight = material.color * material.emissionStrength;
             incomingLight += emittedLight * rayColor;
             break;
-        } else {
-            float lightStrength = -dot(traceResult.normal, direction);
-            rayColor *= material.color * 2. * lightStrength;
         }
+        direction = randomHemisphereDirection(randomState, traceResult.normal);
+        float lightStrength = dot(traceResult.normal, direction);
+        rayColor *= material.color * 2. * lightStrength;
 
         raySource = traceResult.newOrigin;
-        direction = randomHemisphereDirection(randomState, traceResult.normal);
     }
     return incomingLight;
 }

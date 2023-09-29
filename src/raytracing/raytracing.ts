@@ -15,7 +15,7 @@ interface Sphere {
     emissionStrength?: number;
 };
 
-const bounceLimit = 4, raysPerPixel = 30, maxIteration = 30;
+const bounceLimit = 3, raysPerPixel = 20, maxIteration = 100;
 
 function createTextureArrayFromTris(data: TriData) {
     const { tris, verts, colors } = data;
