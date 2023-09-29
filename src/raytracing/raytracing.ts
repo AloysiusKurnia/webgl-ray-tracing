@@ -17,57 +17,6 @@ interface Sphere {
 
 const bounceLimit = 4, raysPerPixel = 30, maxIteration = 30;
 
-function generateSphere(nSpheres: number, spacing: number, radius: number) {
-    const spheres = new Array(nSpheres).fill(null).map((_, i) => ({
-        radius,
-        center: [i * spacing - (nSpheres - 1) * spacing / 2, 0.05, -1],
-        color: [i / nSpheres, (1 - i / nSpheres), 0]
-    } as Sphere));
-    // Special bois
-    spheres.push(
-        { // Light
-            radius: 3,
-            center: [1, 4.3, -0.8],
-            emissionColor: [1, 1, 1],
-            emissionStrength: 4
-        },
-        // { // Ground
-        //     radius: 8,
-        //     center: [0, -8 - radius, 1],
-        //     color: [0.3, 0.4, 2]
-        // },
-        // { // Back wall
-        //     radius: 8,
-        //     center: [0, 0, 8],
-        //     color: [0.6, 0.2, 0.8]
-        // }
-    );
-    return spheres;
-}
-
-function createTextureArrayFromSpheres(spheres: Sphere[]): Float32Array {
-    const geometry: vec4[] = [[0, 0, 0, 0]];
-    const colors: vec4[] = [[0, 0, 0, 0]];
-
-    for (const sphere of spheres) {
-        const {
-            // Geometry
-            center, radius,
-            // Material
-            emissionColor = [0, 0, 0], emissionStrength = 0, color = [0, 0, 0],
-        } = sphere;
-
-        geometry.push([...center, radius]);
-        if (emissionStrength > 0) {
-            colors.push([...emissionColor, emissionStrength]);
-        } else {
-            colors.push([...color, -1]);
-        }
-    }
-    const flattened = [geometry, colors].flat(2);
-    return new Float32Array(flattened);
-}
-
 function createTextureArrayFromTris(data: TriData) {
     const { tris, verts, colors } = data;
     const v0: vec4[] = [[0, 0, 0, 0]];
@@ -154,9 +103,6 @@ export function raytrace(
 ) {
     const gl = canvas.getContext("webgl2");
 
-    // const spheres = generateSphere(0, 1, .2);
-    const spheres = [];
-    const sphereTexture = createTextureArrayFromSpheres(spheres);
     const octaTexture = createTextureArrayFromTris(octahedron);
 
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
@@ -167,12 +113,6 @@ export function raytrace(
     const previousFrame = twgl.createFramebufferInfo(gl);
     const currentFrame = twgl.createFramebufferInfo(gl);
 
-    const sphereData = twgl.createTexture(gl, {
-        mag: gl.NEAREST, min: gl.NEAREST,
-        height: 2,
-        format: gl.RGBA, internalFormat: gl.RGBA32F,
-        src: sphereTexture,
-    });
     const triData = twgl.createTexture(gl, {
         mag: gl.NEAREST, min: gl.NEAREST,
         height: 4,
@@ -194,7 +134,7 @@ export function raytrace(
     twgl.setBuffersAndAttributes(gl, traceProgram, geometry);
     twgl.setUniforms(traceProgram, {
         raySourceDistance: 10, screenMultiplier: 2,
-        sphereAmount: spheres.length, triAmount: 8,
+        triAmount: 8,
         screenSize: [canvas.width, canvas.height],
         bounceLimit, raysPerPixel
     });
@@ -225,7 +165,6 @@ export function raytrace(
         selectFrame(tracingFrame);
         useProgram(traceProgram);
         twgl.setUniforms(traceProgram, {
-            sphereData,
             triData,
             seed: Math.random() * 1000
         });

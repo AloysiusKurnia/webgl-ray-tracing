@@ -6,7 +6,6 @@ precision highp float;
 in vec2 tracingCoordinates;
 in vec2 pixelMap;
 
-uniform sampler2D sphereData;
 uniform sampler2D triData;
 
 uniform float raySourceDistance;
@@ -29,11 +28,6 @@ struct TraceOutput {
     vec3 normal;
 };
 
-Material sphereMaterial(int index) {
-    vec4 b = texelFetch(sphereData, ivec2(index, 1), 0);
-    return Material(b.rgb, b.a);
-}
-
 Material triMaterial(int index) {
     vec4 b = texelFetch(triData, ivec2(index, 3), 0);
     return Material(b.rgb, b.a);
@@ -46,32 +40,9 @@ vec3[3] getTri(int index) {
     return vec3[](v0, v1, v2);
 }
 
-vec3 sphereCenter(int index) {
-    return texelFetch(sphereData, ivec2(index, 0), 0).rgb;
-}
-
-float sphereRadius(int index) {
-    return texelFetch(sphereData, ivec2(index, 0), 0).a;
-}
-
 TraceOutput singleTrace(vec3 lineOrigin, vec3 direction) {
-    int sphereAmount = textureSize(sphereData, 0).x;
     int nearestShapeIndex = -1;
     float distanceToNearestShape = 0.0;
-    for(int i = 0; i < sphereAmount; i++) {
-        // Sphere intersection
-        vec3 o_min_c = lineOrigin - sphereCenter(i);
-        float r = sphereRadius(i);
-        float b = dot(direction, o_min_c);
-        float discriminant = b * b + r * r - dot(o_min_c, o_min_c);
-        if(discriminant >= 0.0) {
-            float dist = -b - sqrt(discriminant);
-            if(dist > 0.0 && (nearestShapeIndex == -1 || dist < distanceToNearestShape)) {
-                nearestShapeIndex = i;
-                distanceToNearestShape = dist;
-            }
-        }
-    }
     int triAmount = textureSize(triData, 0).x;
     for(int i = 0; i < triAmount; i++) {
         // Moeller-Trumbore intersection
@@ -107,18 +78,14 @@ TraceOutput singleTrace(vec3 lineOrigin, vec3 direction) {
         if(nearestShapeIndex != -1 && dist >= distanceToNearestShape)
             continue;
         distanceToNearestShape = dist;
-        nearestShapeIndex = sphereAmount + i;
+        nearestShapeIndex = i;
     }
 
     vec3 newOrigin = distanceToNearestShape * direction + lineOrigin;
     vec3 normal;
-    if(nearestShapeIndex < sphereAmount) {
-        normal = normalize(newOrigin - sphereCenter(nearestShapeIndex));
-    } else {
-        vec3[3] verts = getTri(nearestShapeIndex - sphereAmount);
+    vec3[3] verts = getTri(nearestShapeIndex);
         normal = cross(verts[1] - verts[0], verts[2] - verts[0]);
         normal /= length(normal);
-    }
     return TraceOutput(nearestShapeIndex, newOrigin, normal);
 }
 
@@ -147,7 +114,6 @@ vec3 randomHemisphereDirection(inout uint randomState, vec3 normal) {
 vec3 runRayTracing(inout uint randomState, uint maxBounces) {
     vec3 raySource = vec3(0, 0, -raySourceDistance);
     vec3 direction = normalize(vec3(tracingCoordinates, 0) - raySource);
-    int sphereAmount = textureSize(sphereData, 0).x;
     vec3 rayColor = vec3(1);
     vec3 incomingLight = vec3(0);
     for(uint i = 0u; i < maxBounces; i++) {
@@ -157,11 +123,7 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
             break;
         }
 
-        Material material;
-        if(traceResult.hitGeometryIndex < sphereAmount)
-            material = sphereMaterial(traceResult.hitGeometryIndex);
-        else
-            material = triMaterial(traceResult.hitGeometryIndex - sphereAmount);
+        Material material  = triMaterial(traceResult.hitGeometryIndex);
 
         // assuming emission and diffusive materials are two completely different things
         if(material.emissionStrength > 0.) {
