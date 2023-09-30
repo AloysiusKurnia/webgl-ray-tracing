@@ -91,10 +91,12 @@ TraceOutput singleTrace(vec3 lineOrigin, vec3 direction) {
 
 // PCG Randomization algorithm
 float random(inout uint state) {
-    state = state * 747796405u + 2891336453u;
-    uint result = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
-    result = (result >> 22) ^ result;
-    return float(result) / 4294967295.0;
+    state = state * 747796405u + 1u;
+    uint value = (((state >> 10) ^ state) >> 12) & 0xffffu;
+    uint rot = state >> 28;
+    uint outputInteger = ((value >> rot) | (value << ((-rot) & 15u))) & 0xffffu;
+
+    return float(outputInteger) / 65535.0;
 }
 
 vec3 randomDirection(inout uint randomState) {
@@ -102,11 +104,6 @@ vec3 randomDirection(inout uint randomState) {
     float angle = random(randomState) * 2.0 * PI;
     float sliceRadius = sqrt(1.0 - z * z);
     return vec3(sliceRadius * sin(angle), sliceRadius * cos(angle), z);
-}
-
-vec3 randomHemisphereDirection(inout uint randomState, vec3 normal) {
-    vec3 direction = randomDirection(randomState);
-    return direction * sign(dot(direction, normal));
 }
 
 vec3 runRayTracing(inout uint randomState, uint maxBounces) {

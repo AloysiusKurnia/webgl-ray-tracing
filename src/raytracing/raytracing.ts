@@ -8,7 +8,7 @@ import vertexSource from 'shaders/vert.vert';
 import { TriData, octahedron } from './geometry';
 import { vec4 } from './structs';
 
-const bounceLimit = 3, raysPerPixel = 30, maxIteration = 50;
+const bounceLimit = 3, raysPerPixel = 40, maxIteration = 30;
 
 function createTextureArrayFromTris(data: TriData) {
     const { tris, verts, colors } = data;
@@ -128,7 +128,7 @@ export function raytrace(
         if (iteration < maxIteration)
             requestAnimationFrame(render);
         else
-            updateStatusBar('Done!');
+            updateStatusBar(`Done! (total time: ${(elapsedMiliseconds/1000).toFixed(2)}s)`);
     };
 
     render();
