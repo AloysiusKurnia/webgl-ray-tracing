@@ -1,19 +1,12 @@
 import * as twgl from 'externals/twgl';
 
-import vertexSource from 'shaders/vert.vert';
-import traceF from 'shaders/trace.frag';
-import plainF from 'shaders/plain.frag';
 import accumF from 'shaders/accum.frag';
+import plainF from 'shaders/plain.frag';
+import traceF from 'shaders/trace.frag';
+import vertexSource from 'shaders/vert.vert';
 
-import { vec3, vec4 } from './structs';
-
-interface Sphere {
-    radius: number,
-    center: vec3,
-    color?: vec3,
-    emissionColor?: vec3,
-    emissionStrength?: number;
-};
+import { TriData, octahedron } from './geometry';
+import { vec4 } from './structs';
 
 const bounceLimit = 3, raysPerPixel = 30, maxIteration = 50;
 
@@ -32,70 +25,6 @@ function createTextureArrayFromTris(data: TriData) {
     const flattened = [v0, v1, v2, color].flat(2);
     return new Float32Array(flattened);
 }
-
-interface TriData {
-    verts: vec3[],
-    colors: vec3[],
-    tris: { vert: vec3; color: number; emissionStrength: number; }[];
-}
-const octahedron = {
-    verts: [
-        [0.4 + .4, -0.5 + 0, 0],
-        [0.4 - .4, -0.5 + 0, 0],
-        [0.4 + 0, -0.5 + 0, -.4],
-        [0.4 + 0, -0.5 + 0, +.4],
-        [0.4 + 0, -0.5 + .4, 0],
-        [0.4 + 0, -0.5 - .4, 0],
-
-        [+1, -1, +1],
-        [+1, -1, -1],
-        [-1, -1, +1],
-        [-1, -1, -1],
-        [+1, +1, +1],
-        [+1, +1, -1],
-        [-1, +1, +1],
-        [-1, +1, -1],
-
-        [+.3, .99, +.3],
-        [+.3, .99, -.3],
-        [-.3, .99, +.3],
-        [-.3, .99, -.3],
-    ],
-    colors: [
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1],
-        [1, 1, 0],
-        [1, 1, 1]
-    ],
-    tris: [
-        { vert: [5, 1, 3], color: 1, emissionStrength: -1 },
-        { vert: [5, 3, 2], color: 2, emissionStrength: -1 },
-        { vert: [5, 2, 4], color: 5, emissionStrength: -1 },
-        { vert: [5, 4, 1], color: 5, emissionStrength: -1 },
-        { vert: [6, 3, 1], color: 3, emissionStrength: -1 },
-        { vert: [6, 2, 3], color: 4, emissionStrength: -1 },
-        { vert: [6, 4, 2], color: 5, emissionStrength: -1 },
-        { vert: [6, 1, 4], color: 5, emissionStrength: -1 },
-
-        { vert: [7, 8, 9], color: 5, emissionStrength: -1 },
-        { vert: [10, 9, 8], color: 5, emissionStrength: -1 },
-        { vert: [7, 9, 13], color: 5, emissionStrength: -1 },
-        { vert: [7, 13, 11], color: 5, emissionStrength: -1 },
-        { vert: [10, 14, 13], color: 1, emissionStrength: -1 },
-        { vert: [10, 13, 9], color: 1, emissionStrength: -1 },
-        { vert: [8, 7, 11], color: 2, emissionStrength: -1 },
-        { vert: [12, 8, 11], color: 2, emissionStrength: -1 },
-        { vert: [14, 10, 8], color: 5, emissionStrength: -1 },
-        { vert: [8, 12, 14], color: 5, emissionStrength: -1 },
-
-        { vert: [12, 11, 13], color: 5, emissionStrength: -1 },
-        { vert: [13, 14, 12], color: 5, emissionStrength: -1 },
-        { vert: [16, 15, 17], color: 5, emissionStrength: 25 },
-        { vert: [17, 18, 16], color: 5, emissionStrength: 25 },
-        // 12 left
-    ]
-} as TriData;
 
 export function raytrace(
     canvas: HTMLCanvasElement | OffscreenCanvas,
