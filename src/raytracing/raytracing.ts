@@ -8,7 +8,7 @@ import vertexSource from 'shaders/vert.vert';
 import { TriData, octahedron } from './geometry';
 import { vec4 } from './structs';
 
-const bounceLimit = 3, raysPerPixel = 40, maxIteration = 30;
+const bounceLimit = 4, raysPerPixel = 35, maxIteration = 100;
 
 function createTextureArrayFromTris(data: TriData) {
     const { tris, verts, colors } = data;

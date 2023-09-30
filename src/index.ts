@@ -1,6 +1,17 @@
+import { bboxDetail, buildEncodedBVHTree } from "raytracing/bvh";
+import { createBBoxFromTri, octahedron } from "raytracing/geometry";
 import { raytrace } from "raytracing/raytracing";
 
 async function main() {
+    const bbox = octahedron.tris.map((s) => createBBoxFromTri(
+        octahedron.verts,
+        s.vert
+    ));
+    bbox.forEach(s => console.log(bboxDetail(s)));
+    const tree = buildEncodedBVHTree(bbox);
+    console.log(tree.join(' '));
+    
+
     const wrapper = document.createElement('div');
     const canvas = document.createElement('canvas');
     const statusBar = document.createElement('div');

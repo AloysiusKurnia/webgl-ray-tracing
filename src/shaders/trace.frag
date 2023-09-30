@@ -2,11 +2,14 @@
 #define PI      3.1415926538
 #define EPSILON 0.00000001
 precision highp float;
+precision highp isampler2D;
 
 in vec2 tracingCoordinates;
 in vec2 pixelMap;
 
 uniform sampler2D triData;
+uniform isampler2D bboxStructure;
+uniform sampler2D bboxData;
 
 uniform float raySourceDistance;
 uniform vec2 screenSize;
