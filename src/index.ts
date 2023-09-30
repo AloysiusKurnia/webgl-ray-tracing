@@ -1,4 +1,4 @@
-import { BB, bboxDetail, buildBVHTree } from "raytracing/bvh";
+import { BB, bboxDetail, buildBVHTree, buildEncodedBVHTree } from "raytracing/bvh";
 import { octahedron } from "raytracing/geometry";
 import { raytrace } from "raytracing/raytracing";
 
@@ -19,7 +19,7 @@ async function main() {
         }
         return { x0, y0, z0, x1, y1, z1, triIndex, toString() { return `Triangle ${triIndex}`; } } as BBTriMapping;
     });
-    buildBVHTree(boxes);
+    buildEncodedBVHTree(boxes);
     // const wrapper = document.createElement('div');
     // const canvas = document.createElement('canvas');
     // const statusBar = document.createElement('div');

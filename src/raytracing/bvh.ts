@@ -351,3 +351,46 @@ export function buildBVHTree<T extends BB>(boxes: T[]): BVHTreeNode<T> {
     }
     return root;
 }
+
+
+export function buildEncodedBVHTree<T extends BB>(boxes: T[]) {
+    interface Wrapper extends BB {
+        index: number;
+        depth: number;
+    }
+    const wrapper = boxes.map<Wrapper>((box, index) => {
+        const { x0, y0, z0, x1, y1, z1 } = box;
+        return {
+            x0, y0, z0, x1, y1, z1,
+            index,
+            childCount: 0, depth: 0,
+            toString() { return `[${index}]`; }
+        };
+    });
+    const out: number[] = Array.from(
+        { length: 2 * boxes.length - 1 },
+        (_) => (0)
+    );
+    const mutable = {
+        index: 0
+    };
+    function encode(
+        node: BVHTreeNode<Wrapper>
+    ) {
+        const content = node.content;
+        const nodeIndex = mutable.index;
+        mutable.index += 1;
+        if (Array.isArray(content)) {
+            encode(content[0]);
+            out[nodeIndex] = mutable.index;
+            encode(content[1]);
+        } else {
+            out[nodeIndex] = -content.index;
+        }
+    }
+
+    const tree = buildBVHTree(wrapper);
+    encode(tree);
+
+    return out;
+}
