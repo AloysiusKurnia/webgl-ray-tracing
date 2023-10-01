@@ -1,5 +1,5 @@
-import { bboxDetail, buildEncodedBVHTree } from "raytracing/bvh";
-import { createBBoxFromTri, octahedron } from "raytracing/geometry";
+import { bboxDetail, buildEncodedBVHTree } from "raytracing/geometry/bvh";
+import { createBBoxFromTri, octahedron } from "raytracing/geometry/geometry";
 import { raytrace } from "raytracing/raytracing";
 
 async function main() {

@@ -5,8 +5,8 @@ import plainF from 'shaders/plain.frag';
 import traceF from 'shaders/trace.frag';
 import vertexSource from 'shaders/vert.vert';
 
-import { TriData, octahedron } from './geometry';
-import { vec4 } from './structs';
+import { TriData, octahedron } from './geometry/geometry';
+import { vec4 } from './types';
 
 const bounceLimit = 4, raysPerPixel = 35, maxIteration = 100;
 
@@ -30,7 +30,7 @@ export function raytrace(
     canvas: HTMLCanvasElement | OffscreenCanvas,
     updateStatusBar: (s: string) => void
 ) {
-    const gl = canvas.getContext("webgl2");
+    const gl = canvas.getContext("webgl2")!;
 
     const octaTexture = createTextureArrayFromTris(octahedron);
 
@@ -110,7 +110,7 @@ export function raytrace(
         draw();
 
         // Render to canvas
-        selectFrame(null);
+        selectFrame(null!);
         useProgram(plainProgram);
         twgl.setUniforms(plainProgram, {
             tex: currentFrame.attachments[0]

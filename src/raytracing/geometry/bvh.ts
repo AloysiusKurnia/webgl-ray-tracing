@@ -1,13 +1,9 @@
-import { Heap } from "./heap";
+import { BoundingBox } from "raytracing/types";
+import { Heap } from "raytracing/structure/heap";
 
 const { min, max } = Math;
 
-export interface BB {
-    readonly x0: number; readonly y0: number; readonly z0: number;
-    readonly x1: number; readonly y1: number; readonly z1: number;
-}
-
-function union(a: BB, b: BB): BB {
+function union(a: BoundingBox, b: BoundingBox): BoundingBox {
     return {
         x0: min(a.x0, b.x0),
         y0: min(a.y0, b.y0),
@@ -18,21 +14,21 @@ function union(a: BB, b: BB): BB {
     };
 }
 
-function hsa(bb: BB) {
+function hsa(bb: BoundingBox) {
     const dx = bb.x1 - bb.x0;
     const dy = bb.y1 - bb.y0;
     const dz = bb.z1 - bb.z0;
     return (dx * dy) + (dy * dz) + (dz * dx);
 }
 
-function hsaUnion(a: BB, b: BB) {
+function hsaUnion(a: BoundingBox, b: BoundingBox) {
     const dx = max(a.x1, b.x1) - min(a.x0, b.x0);
     const dy = max(a.y1, b.y1) - min(a.y0, b.y0);
     const dz = max(a.z1, b.z1) - min(a.z0, b.z0);
     return (dx * dy) + (dy * dz) + (dz * dx);
 }
 
-export function bboxDetail(bb: BB) {
+export function bboxDetail(bb: BoundingBox) {
     const { x0, x1, y0, y1, z0, z1 } = bb;
     return [x0, y0, z0].map(s => s.toFixed(2)).join('/')
         + '; '
@@ -46,13 +42,13 @@ const enum Position {
     None = ''
 }
 
-export interface BVHTreeNode<T extends BB> extends BB {
+export interface BVHTreeNode<T extends BoundingBox> extends BoundingBox {
     readonly content: [BVHNodeImpl<T>, BVHNodeImpl<T>] | T;
     readonly parent: BVHNodeImpl<T> | null;
     readonly depth: number;
 }
 
-class BVHNodeImpl<T extends BB> implements BVHTreeNode<T> {
+class BVHNodeImpl<T extends BoundingBox> implements BVHTreeNode<T> {
     x0: number; y0: number; z0: number;
     x1: number; y1: number; z1: number;
 
@@ -68,7 +64,7 @@ class BVHNodeImpl<T extends BB> implements BVHTreeNode<T> {
     }
 
     recalculateBoundingBox() {
-        let bb: BB;
+        let bb: BoundingBox;
         if (Array.isArray(this.content)) {
             bb = union(...this.content);
         } else {
@@ -239,7 +235,7 @@ class BVHNodeImpl<T extends BB> implements BVHTreeNode<T> {
     }
 }
 
-function costReductionIfBetter<T extends BB>(
+function costReductionIfBetter<T extends BoundingBox>(
     near: BVHNodeImpl<T>,
     swap: BVHNodeImpl<T>,
     rest: BVHNodeImpl<T>,
@@ -272,7 +268,7 @@ const enum Rotation {
     RR = 'RR'
 }
 
-function findBest<T extends BB>(
+function findBest<T extends BoundingBox>(
     root: BVHNodeImpl<T>,
     entry: T,
     heapCache: BVHNodeImpl<T>[]
@@ -319,7 +315,7 @@ function findBest<T extends BB>(
     return bestNode;
 }
 
-export function visualizeTree<T extends BB>(
+export function visualizeTree<T extends BoundingBox>(
     node: BVHNodeImpl<T>,
     indent: string = ""
 ): string {
@@ -340,7 +336,7 @@ export function visualizeTree<T extends BB>(
     }
 }
 
-export function buildBVHTree<T extends BB>(boxes: T[]): BVHTreeNode<T> {
+export function buildBVHTree<T extends BoundingBox>(boxes: T[]): BVHTreeNode<T> {
     const [first, ...rest] = boxes;
 
     const root = new BVHNodeImpl(first);
@@ -353,8 +349,8 @@ export function buildBVHTree<T extends BB>(boxes: T[]): BVHTreeNode<T> {
 }
 
 
-export function buildEncodedBVHTree<T extends BB>(boxes: T[]) {
-    interface Wrapper extends BB {
+export function buildEncodedBVHTree<T extends BoundingBox>(boxes: T[]) {
+    interface Wrapper extends BoundingBox {
         index: number;
         depth: number;
     }

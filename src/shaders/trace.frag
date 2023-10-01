@@ -7,9 +7,8 @@ precision highp isampler2D;
 in vec2 tracingCoordinates;
 in vec2 pixelMap;
 
-uniform sampler2D triData;
-uniform isampler2D bboxStructure;
-uniform sampler2D bboxData;
+uniform sampler2D floatArrayUniform;
+uniform isampler2D integerArrayUniform;
 
 uniform float raySourceDistance;
 uniform vec2 screenSize;
@@ -32,21 +31,21 @@ struct TraceOutput {
 };
 
 Material triMaterial(int index) {
-    vec4 b = texelFetch(triData, ivec2(index, 3), 0);
+    vec4 b = texelFetch(floatArrayUniform, ivec2(index, 3), 0);
     return Material(b.rgb, b.a);
 }
 
 vec3[3] getTri(int index) {
-    vec3 v0 = texelFetch(triData, ivec2(index, 0), 0).rgb;
-    vec3 v1 = texelFetch(triData, ivec2(index, 1), 0).rgb;
-    vec3 v2 = texelFetch(triData, ivec2(index, 2), 0).rgb;
+    vec3 v0 = texelFetch(floatArrayUniform, ivec2(index, 0), 0).rgb;
+    vec3 v1 = texelFetch(floatArrayUniform, ivec2(index, 1), 0).rgb;
+    vec3 v2 = texelFetch(floatArrayUniform, ivec2(index, 2), 0).rgb;
     return vec3[](v0, v1, v2);
 }
 
 TraceOutput singleTrace(vec3 lineOrigin, vec3 direction) {
     int nearestShapeIndex = -1;
     float distanceToNearestShape = 0.0;
-    int triAmount = textureSize(triData, 0).x;
+    int triAmount = textureSize(floatArrayUniform, 0).x;
     for(int i = 0; i < triAmount; i++) {
         // Moeller-Trumbore intersection
         vec3[3] verts = getTri(i);

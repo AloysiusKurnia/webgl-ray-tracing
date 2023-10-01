@@ -1,5 +1,4 @@
-import { BB } from "./bvh";
-import { vec3 } from "./structs";
+import { BoundingBox, vec3 } from "../types";
 
 export interface TriData {
     verts: vec3[],
@@ -8,7 +7,7 @@ export interface TriData {
 }
 
 const { min, max } = Math;
-export function createBBoxFromTri(vertsList: vec3[], indices: vec3): BB {
+export function createBBoxFromTri(vertsList: vec3[], indices: vec3): BoundingBox {
     let x0 = Infinity; let x1 = -Infinity;
     let y0 = Infinity; let y1 = -Infinity;
     let z0 = Infinity; let z1 = -Infinity;
@@ -81,3 +80,4 @@ export const octahedron = {
         // 12 left
     ]
 } as TriData;
+
