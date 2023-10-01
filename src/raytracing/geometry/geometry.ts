@@ -52,7 +52,7 @@ export const octahedron = {
         { color: [0, 0, 1], emissionStrength: -1, roughness: 1 },
         { color: [1, 1, 0], emissionStrength: -1, roughness: 1 },
         { color: [1, 1, 1], emissionStrength: -1, roughness: 1 },
-        { color: [1, 1, 1], emissionStrength: 25, roughness: 0 },
+        { color: [1, 1, 1], emissionStrength: 30, roughness: 0 },
     ],
     tris: [
         // Octahedron

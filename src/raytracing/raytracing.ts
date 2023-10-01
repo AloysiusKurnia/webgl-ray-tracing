@@ -7,7 +7,7 @@ import vertexSource from 'shaders/vert.vert';
 
 import { RenderUniformData, generateUniformData } from './structure/data-writer';
 
-const bounceLimit = 3, raysPerPixel = 1, maxIteration = 100;
+const bounceLimit = 3, raysPerPixel = 15, maxIteration = 200;
 
 export function raytrace(
     canvas: HTMLCanvasElement | OffscreenCanvas,
@@ -89,7 +89,7 @@ export function raytrace(
         twgl.setUniforms(traceProgram, {
             floatArrayUniform,
             integerArrayUniform,
-            seed: Math.random() * 1000
+            seed: Math.random() * 65536
         });
         draw();
 
