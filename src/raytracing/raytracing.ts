@@ -41,7 +41,7 @@ export function raytrace(
     const integerArrayUniform = twgl.createTexture(gl, {
         mag: gl.NEAREST, min: gl.NEAREST,
         width: dataArray.length,
-        format: gl.RG_INTEGER, internalFormat: gl.RG16I,
+        format: gl.RGB_INTEGER, internalFormat: gl.RGB16I,
         src: dataArray.ints
     });
 

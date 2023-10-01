@@ -47,6 +47,7 @@ export interface RenderUniformData {
     boundingBoxData: {
         structure: number[];
         shape: BoundingBox[];
+        parents: number[];
     };
 }
 
@@ -62,10 +63,10 @@ export function generateUniformData(data: RenderUniformData) {
     6   | [Material roughness, Material emission strength, -]
     7-8 | Bounding box min and max points respectively
     Ints
-    0   | [Box structure data, triangle material index, -]
+    0   | [Box structure data, triangle material index, Box parent index]
     ========================================================================= */
     const floatDataWriter = new DataWriter(length, 9, ArrayType.Float, 3);
-    const intDataWriter = new DataWriter(length, 1, ArrayType.Int, 2);
+    const intDataWriter = new DataWriter(length, 1, ArrayType.Int, 3);
 
     for (let i = 0; i < triangles.length; i++) {
         const { p0, p1, p2, normal, materialIndex } = triangles[i];
@@ -75,7 +76,7 @@ export function generateUniformData(data: RenderUniformData) {
             .write(i, 2, p2)
             .write(i, 3, normal);
         intDataWriter
-            .write(i, 0, [null, materialIndex]);
+            .write(i, 0, [null, materialIndex, null]);
     }
 
     for (let i = 0; i < materials.length; i++) {
@@ -91,7 +92,11 @@ export function generateUniformData(data: RenderUniformData) {
             .write(i, 7, [x0, y0, z0])
             .write(i, 8, [x1, y1, z1]);
         intDataWriter
-            .write(i, 0, [boundingBoxData.structure[i], null]);
+            .write(i, 0, [
+                boundingBoxData.structure[i], 
+                null,
+                boundingBoxData.parents[i]
+            ]);
     }
 
     return {

@@ -363,30 +363,34 @@ export function buildEncodedBVHTree<T extends BoundingBox>(boxes: T[]) {
             toString() { return `[${index}]`; }
         };
     });
-    const structure: number[] = Array.from(
-        { length: 2 * boxes.length - 1 },
-        (_) => (0)
-    );
-    const mutable = { index: 0 };
-    const shape: BoundingBox[] = [];
+    const structure: number[] = new Array(2 * boxes.length - 1);
+    const parents: number[] = new Array(2 * boxes.length - 1);
+    const shape: BoundingBox[] = new Array(2 * boxes.length - 1);
+    const mutable = {
+        index: 0,
+        parentIndex: -1
+    };
     function encode(
         node: BVHTreeNode<Wrapper>
     ) {
-        shape.push(node);
+        shape[mutable.index] = node;
+        parents[mutable.index] = mutable.parentIndex;
         const content = node.content;
-        const nodeIndex = mutable.index;
+        const currentNodeIndex = mutable.index;
         mutable.index += 1;
         if (Array.isArray(content)) {
+            mutable.parentIndex = currentNodeIndex;
             encode(content[0]);
-            structure[nodeIndex] = mutable.index;
+            mutable.parentIndex = currentNodeIndex;
+            structure[currentNodeIndex] = mutable.index;
             encode(content[1]);
         } else {
-            structure[nodeIndex] = -content.index;
+            structure[currentNodeIndex] = -content.index;
         }
     }
 
     const tree = buildBVHTree(wrapper);
     encode(tree);
-
-    return { structure, shape };
+    
+    return { structure, shape, parents };
 }

@@ -43,7 +43,7 @@ struct TraceOutput {
 // 6   | [Material roughness, Material emission strength, -]
 // 7-8 | Bounding box min and max points respectively
 // Ints
-// 0   | [Box structure data, triangle material index, -]
+// 0   | [Box structure data, triangle material index, Box parent index]
 
 ivec4 fetchIntegerArray(int index, int signifier) {
     return texelFetch(integerArrayUniform, ivec2(index, signifier), 0);
@@ -66,6 +66,19 @@ vec3[3] getTri(int index) {
     vec3 v1 = fetchFloatArray(index, 1).rgb;
     vec3 v2 = fetchFloatArray(index, 2).rgb;
     return vec3[](v0, v1, v2);
+}
+
+vec3[2] getBoundingBox(int index) {
+    vec3 vMin = fetchFloatArray(index, 7).rgb;
+    vec3 vMax = fetchFloatArray(index, 8).rgb;
+    return vec3[](vMin, vMax);
+}
+
+int getBoundingBoxRightChild(int index) {
+    return fetchIntegerArray(index, 0).r;
+}
+int getBoundingBoxParent(int index) {
+    return fetchIntegerArray(index, 0).b;
 }
 
 // RANDOMIZATION ==============================================================
@@ -116,7 +129,7 @@ float intersectBox(vec3 minVert, vec3 maxVert, vec3 direction, vec3 rayOrigin) {
         tMin = max(tMin, min(t1, t2));
         tMax = min(tMax, max(t1, t2));
     }
-    if (tMax < tMin || tMax < 0.) {
+    if(tMax < tMin || tMax < 0.) {
         return -1.;
     }
     return tMax;
@@ -160,8 +173,10 @@ TraceOutput singleTrace(vec3 rayOrigin, vec3 direction) {
     for(int i = 0; i < triAmount; i++) {
         vec3[3] verts = getTri(i);
         float dist = intersectTriangle(verts, direction, rayOrigin);
-        if (dist < 0.01) continue;
-        if (nearestShapeIndex != -1 && dist >= distanceToNearestShape) continue;
+        if(dist < 0.01)
+            continue;
+        if(nearestShapeIndex != -1 && dist >= distanceToNearestShape)
+            continue;
         distanceToNearestShape = dist;
         nearestShapeIndex = i;
     }
