@@ -52,18 +52,18 @@ export interface RenderUniformData {
 
 export function generateUniformData(data: RenderUniformData) {
     const { triangles, materials, boundingBoxData } = data;
-    const length = Math.max(boundingBoxData.shape.length, materials.length);
+    const length = boundingBoxData.shape.length;
     /* ROW ASSIGNMENT =========================================================
     Floats
     0-2 | Triangle vertices
-    3   | Triangle normal
+    3   | Triangle normal [unused]
     4   | Material color
     5   | Material specular color [unused]
     6   | [Material roughness, Material emission strength, -]
     7-8 | Bounding box min and max points respectively
     Ints
     0   | [Box structure data, triangle material index, -]
-    */
+    ========================================================================= */
     const floatDataWriter = new DataWriter(length, 9, ArrayType.Float, 3);
     const intDataWriter = new DataWriter(length, 1, ArrayType.Int, 2);
 
@@ -98,5 +98,5 @@ export function generateUniformData(data: RenderUniformData) {
         floats: floatDataWriter.buffer,
         ints: intDataWriter.buffer,
         length
-    }
+    };
 }

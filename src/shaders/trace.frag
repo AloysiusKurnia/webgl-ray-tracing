@@ -1,6 +1,9 @@
 #version 300 es
 #define PI      3.1415926538
 #define EPSILON 0.00000001
+
+// UNIFORMS ===================================================================
+
 precision highp float;
 precision highp isampler2D;
 
@@ -19,6 +22,8 @@ uniform uint raysPerPixel;
 
 out vec4 outColor;
 
+// STRUCTS ====================================================================
+
 struct Material {
     vec3 color;
     float emissionStrength;
@@ -30,9 +35,22 @@ struct TraceOutput {
     vec3 normal;
 };
 
+// DATA FETCHER ===============================================================
+// Floats
+// 0-2 | Triangle vertices
+// 3   | Triangle normal [unused]
+// 4   | Material color
+// 5   | Material specular color [unused]
+// 6   | [Material roughness, Material emission strength, -]
+// 7-8 | Bounding box min and max points respectively
+// Ints
+// 0   | [Box structure data, triangle material index, -]
+
 Material triMaterial(int index) {
-    vec4 b = texelFetch(floatArrayUniform, ivec2(index, 3), 0);
-    return Material(b.rgb, b.a);
+    int materialIndex = texelFetch(integerArrayUniform, ivec2(index, 0), 0).g;
+    vec3 color = texelFetch(floatArrayUniform, ivec2(materialIndex, 4), 0).rgb;
+    float emission = texelFetch(floatArrayUniform, ivec2(materialIndex, 6), 0).g;
+    return Material(color, emission);
 }
 
 vec3[3] getTri(int index) {
@@ -138,6 +156,9 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
 }
 
 void main() {
+    // vec3 debug = triMaterial(20).color;
+    // outColor = vec4(debug, 1);
+    // return;
     uvec2 castPixelMap = uvec2(pixelMap);
     uint index = castPixelMap.y * uint(screenSize.x) + castPixelMap.x;
     uint randomState = uint(seed) + index;

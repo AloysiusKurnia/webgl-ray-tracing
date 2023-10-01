@@ -5,34 +5,19 @@ import plainF from 'shaders/plain.frag';
 import traceF from 'shaders/trace.frag';
 import vertexSource from 'shaders/vert.vert';
 
-import { TriData, octahedron } from './geometry/geometry';
-import { vec4 } from './types';
+import { RenderUniformData, generateUniformData } from './structure/data-writer';
 
-const bounceLimit = 4, raysPerPixel = 35, maxIteration = 100;
-
-function createTextureArrayFromTris(data: TriData) {
-    const { tris, verts, colors } = data;
-    const v0: vec4[] = [[0, 0, 0, 0]];
-    const v1: vec4[] = [[0, 0, 0, 0]];
-    const v2: vec4[] = [[0, 0, 0, 0]];
-    const color: vec4[] = [[0, 0, 0, 0]];
-    for (const tri of tris) {
-        v0.push([...verts[tri.vert[0] - 1], 0]);
-        v1.push([...verts[tri.vert[1] - 1], 0]);
-        v2.push([...verts[tri.vert[2] - 1], 0]);
-        color.push([...colors[tri.color - 1], tri.emissionStrength]);
-    }
-    const flattened = [v0, v1, v2, color].flat(2);
-    return new Float32Array(flattened);
-}
+const bounceLimit = 3, raysPerPixel = 1, maxIteration = 100;
 
 export function raytrace(
     canvas: HTMLCanvasElement | OffscreenCanvas,
+    data: RenderUniformData,
     updateStatusBar: (s: string) => void
 ) {
     const gl = canvas.getContext("webgl2")!;
 
-    const octaTexture = createTextureArrayFromTris(octahedron);
+    const dataArray = generateUniformData(data);
+    console.log(dataArray);
 
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
     const plainProgram = twgl.createProgramInfo(gl, [vertexSource, plainF]);
@@ -41,13 +26,21 @@ export function raytrace(
     const tracingFrame = twgl.createFramebufferInfo(gl);
     const previousFrame = twgl.createFramebufferInfo(gl);
     const currentFrame = twgl.createFramebufferInfo(gl);
+    console.log(dataArray);
 
-    const triData = twgl.createTexture(gl, {
+    const floatArrayUniform = twgl.createTexture(gl, {
         mag: gl.NEAREST, min: gl.NEAREST,
-        height: 4,
-        format: gl.RGBA, internalFormat: gl.RGBA32F,
-        src: octaTexture
+        width: dataArray.length,
+        format: gl.RGB, internalFormat: gl.RGB32F,
+        src: dataArray.floats
     });
+    const integerArrayUniform = twgl.createTexture(gl, {
+        mag: gl.NEAREST, min: gl.NEAREST,
+        width: dataArray.length,
+        format: gl.RG_INTEGER, internalFormat: gl.RG16I,
+        src: dataArray.ints
+    });
+
 
     // Attributes and pre-set uniforms
     const geometry = twgl.createBufferInfoFromArrays(gl, {
@@ -94,7 +87,8 @@ export function raytrace(
         selectFrame(tracingFrame);
         useProgram(traceProgram);
         twgl.setUniforms(traceProgram, {
-            triData,
+            floatArrayUniform,
+            integerArrayUniform,
             seed: Math.random() * 1000
         });
         draw();
@@ -128,7 +122,7 @@ export function raytrace(
         if (iteration < maxIteration)
             requestAnimationFrame(render);
         else
-            updateStatusBar(`Done! (total time: ${(elapsedMiliseconds/1000).toFixed(2)}s)`);
+            updateStatusBar(`Done! (total time: ${(elapsedMiliseconds / 1000).toFixed(2)}s)`);
     };
 
     render();
