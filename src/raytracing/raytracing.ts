@@ -7,13 +7,17 @@ import vertexSource from 'shaders/vert.vert';
 
 import { RenderUniformData, generateUniformData } from './structure/data-writer';
 
-const bounceLimit = 3, raysPerPixel = 15, maxIteration = 200;
-
 export function raytrace(
     canvas: HTMLCanvasElement | OffscreenCanvas,
     data: RenderUniformData,
+    renderOptions: {
+        bounceLimit: number,
+        raysPerPixel: number,
+        maxIteration: number;
+    },
     updateStatusBar: (s: string) => void
 ) {
+    const { bounceLimit, raysPerPixel, maxIteration } = renderOptions;
     const gl = canvas.getContext("webgl2")!;
 
     const dataArray = generateUniformData(data);
@@ -121,8 +125,12 @@ export function raytrace(
         iteration++;
         if (iteration < maxIteration)
             requestAnimationFrame(render);
-        else
-            updateStatusBar(`Done! (total time: ${(elapsedMiliseconds / 1000).toFixed(2)}s)`);
+        else {
+            const elapsedTime = elapsedMiliseconds / 1000;
+            updateStatusBar(
+                `Done! ${elapsedTime.toFixed(2)}s at ${fps.toFixed(2)}fps avg.`
+            );
+        }
     };
 
     render();
