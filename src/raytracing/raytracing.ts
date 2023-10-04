@@ -21,7 +21,6 @@ export function raytrace(
     const gl = canvas.getContext("webgl2")!;
 
     const dataArray = generateUniformData(data);
-    console.log(dataArray);
 
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
     const plainProgram = twgl.createProgramInfo(gl, [vertexSource, plainF]);
@@ -30,7 +29,6 @@ export function raytrace(
     const tracingFrame = twgl.createFramebufferInfo(gl);
     const previousFrame = twgl.createFramebufferInfo(gl);
     const currentFrame = twgl.createFramebufferInfo(gl);
-    console.log(dataArray);
 
     const floatArrayUniform = twgl.createTexture(gl, {
         mag: gl.NEAREST, min: gl.NEAREST,

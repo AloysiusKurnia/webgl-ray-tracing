@@ -8,16 +8,19 @@ export interface Geometry {
 
 const { min, max } = Math;
 export function createBBoxFromTri(vertsList: vec3[], indices: vec3): BoundingBox {
+    let log = '';
     let x0 = Infinity; let x1 = -Infinity;
     let y0 = Infinity; let y1 = -Infinity;
     let z0 = Infinity; let z1 = -Infinity;
-
+    const displayArr = (...v: vec3) => v.map(s => s.toFixed(2)).join(',');
     for (const index of indices) {
         const [x, y, z] = vertsList[index - 1];
         x0 = min(x0, x); x1 = max(x1, x);
         y0 = min(y0, y); y1 = max(y1, y);
         z0 = min(z0, z); z1 = max(z1, z);
+        log += `  ${displayArr(x, y, z)}\n`;
     }
+    console.log(log + `Occupying bounding box of ${displayArr(x0, y0, z0)}/${displayArr(x1, y1, z1)}`);
 
     return { x0, y0, z0, x1, y1, z1 };
 }

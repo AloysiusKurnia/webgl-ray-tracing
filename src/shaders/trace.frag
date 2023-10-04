@@ -114,37 +114,25 @@ vec3 randomDirection(inout uint randomState) {
 
 // INTERSECTION ===============================================================
 const float INFINITY = 1. / 0.;
-float intersectBox(vec3[2] verts, Ray ray) {
-    vec3 rayOrigin = ray.origin;
-    vec3 rayDirInv = 1. / ray.direction;
-    vec3 minVert = verts[0];
-    vec3 maxVert = verts[1];
-    float t1, t2;
-    vec3 minVertDiff = minVert - rayOrigin;
-    vec3 maxVertDiff = maxVert - rayOrigin;
-    t1 = minVertDiff.x * rayDirInv.x;
-    t2 = maxVertDiff.x * rayDirInv.x;
-    float tMin = min(t1, t2);
-    float tMax = max(t1, t2);
+float intersectBox(vec3[2] box, Ray ray) {
+    vec3 inv_direction = 1.0 / ray.direction;
+    vec3 t1 = (box[0] - ray.origin) * inv_direction;
+    vec3 t2 = (box[1] - ray.origin) * inv_direction;
 
-    t1 = minVertDiff.y * rayDirInv.y;
-    t2 = maxVertDiff.y * rayDirInv.y;
-    tMin = max(tMin, min(t1, t2));
-    tMax = min(tMax, max(t1, t2));
+    vec3 tmin = min(t1, t2);
+    vec3 tmax = max(t1, t2);
 
-    t1 = minVertDiff.z * rayDirInv.z;
-    t2 = maxVertDiff.z * rayDirInv.z;
-    tMin = max(tMin, min(t1, t2));
-    tMax = min(tMax, max(t1, t2));
+    float max_tmin = max(max(tmin.x, tmin.y), tmin.z);
+    float min_tmax = min(min(tmax.x, tmax.y), tmax.z);
 
-    if(tMax < tMin) {
+    if(min_tmax < max_tmin) {
         return -1.;
     }
-    return tMax;
+    return min_tmax;
 }
 
 // Moeller-Trumbore intersection
-float intersectTriangle(vec3[3] verts, Ray ray) {
+float intersectTri(vec3[3] verts, Ray ray) {
     vec3 direction = ray.direction;
     vec3 rayOrigin = ray.origin;
     vec3 e1 = verts[1] - verts[0];
@@ -152,8 +140,8 @@ float intersectTriangle(vec3[3] verts, Ray ray) {
     vec3 h = cross(direction, e2);
     float a = dot(e1, h);
 
-        // The ray does not intersect plane.
-        // For double sided triangle, use abs(a).
+    // The ray does not intersect plane.
+    // For double sided triangle, use abs(a).
     if(a < 0.0001)
         return -1.;
 
@@ -187,14 +175,14 @@ IntersectionResult findNearestIntersection(Ray ray) {
         int rightChildIndex = getBoundingBoxRightChild(nodeIndex);
 
         // Check the intersection of ray with this node.
-        vec3[2] box = getBoundingBoxDimension(nodeIndex + 1);
+        vec3[2] box = getBoundingBoxDimension(nodeIndex);
         float dist = intersectBox(box, ray);
         if(dist > 0.) {
             // Check if this node is a leaf node.
-            if(rightChildIndex < 0) {
-                int triIndex = -nodeIndex;
+            if(rightChildIndex < 1) {
+                int triIndex = -rightChildIndex;
                 vec3[3] tri = getTri(triIndex);
-                float dist = intersectTriangle(tri, ray);
+                float dist = intersectTri(tri, ray);
                 if(dist > 0. && dist < nearestDist) {
                     nearestDist = dist;
                     nearestTriIndex = triIndex;
@@ -225,7 +213,7 @@ IntersectionResult findNearestIntersection(Ray ray) {
             // Set this node as 'having its left node visited'.
             stack[depth >> 3] = stack[depth >> 3] | 1u << (depth & 7);
             nextDestination = getBoundingBoxRightChild(nodeIndex);
-        } 
+        }
         // This node is a branch node and haven't traveled to the left.
         // Can't prove that last statement though. :P
         depth += 1;
@@ -241,26 +229,14 @@ IntersectionResult findNearestIntersection(Ray ray) {
 // RAY TRACING ================================================================
 
 TraceOutput singleTrace(Ray ray) {
-    int nearestShapeIndex = -1;
-    float distanceToNearestShape = 0.0;
-    int triAmount = textureSize(floatArrayUniform, 0).x;
-    for(int i = 0; i < triAmount; i++) {
-        vec3[3] verts = getTri(i);
-        float dist = intersectTriangle(verts, ray);
-        if(dist < 0.01)
-            continue;
-        if(nearestShapeIndex != -1 && dist >= distanceToNearestShape)
-            continue;
-        distanceToNearestShape = dist;
-        nearestShapeIndex = i;
-    }
-    // IntersectionResult result = findNearestIntersection(ray);
-    // int nearestShapeIndex = result.index;
-    // float distanceToNearestShape = result.dist;
+    IntersectionResult result = findNearestIntersection(ray);
+    int nearestShapeIndex = result.index;
+    float distanceToNearestShape = result.dist;
+
     vec3 newOrigin = distanceToNearestShape * ray.direction + ray.origin;
     vec3 normal;
-    vec3[3] verts = getTri(nearestShapeIndex);
-    normal = cross(verts[1] - verts[0], verts[2] - verts[0]);
+    vec3[3] tri = getTri(nearestShapeIndex);
+    normal = cross(tri[1] - tri[0], tri[2] - tri[0]);
     normal /= length(normal);
     return TraceOutput(nearestShapeIndex, newOrigin, normal);
 }
@@ -272,7 +248,6 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
     vec3 incomingLight = vec3(0);
     for(uint i = 0u; i < maxBounces; i++) {
         TraceOutput traceResult = singleTrace(Ray(raySource, direction));
-
         if(traceResult.hitGeometryIndex == -1) {
             outColor = vec4(0, 0, 0, 1);
             return incomingLight;
@@ -295,6 +270,7 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
 }
 
 void main() {
+    outColor = vec4(0, 0, 0, 1);
     uvec2 castPixelMap = uvec2(pixelMap);
     uint index = castPixelMap.y * uint(screenSize.x) + castPixelMap.x;
     uint randomState = uint(seed) + index;

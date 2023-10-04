@@ -63,7 +63,7 @@ const octahedron = {
     ]
 } as Geometry;
 
-const bounceLimit = 3, raysPerPixel = 10, maxIteration = 50;
+const bounceLimit = 3, raysPerPixel = 50, maxIteration = 100;
 
 async function main() {
     const wrapper = document.createElement('div');
@@ -72,15 +72,18 @@ async function main() {
     statusBar.innerText = 'Tap the canvas to start rendering.';
     wrapper.id = 'wrapper';
     function updateStatusBar(msg: string) { statusBar.innerText = msg; }
-    canvas.height = 500;
-    canvas.width = 700;
+    canvas.height = 200;
+    canvas.width = 300;
 
     wrapper.appendChild(canvas);
     wrapper.appendChild(statusBar);
     document.body.appendChild(wrapper);
 
     const bbox = octahedron.tris.map(
-        (tri) => createBBoxFromTri(octahedron.verts, tri.vert)
+        (tri, i) => {
+            console.log(`Triangle ${i}:`);
+            return createBBoxFromTri(octahedron.verts, tri.vert)
+        }
     );
     const boundingBoxData = buildEncodedBVHTree(bbox);
     const triangles = compileGeometry(octahedron);
