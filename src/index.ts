@@ -5,14 +5,14 @@ import { raytrace } from "raytracing/raytracing";
 
 const octahedron = {
     verts: [
-        [0.4 + .4, -0.5 + 0, 0],
+        [0.4 + .4, -0.5 + 0, 0], // 0
         [0.4 - .4, -0.5 + 0, 0],
         [0.4 + 0, -0.5 + 0, -.4],
         [0.4 + 0, -0.5 + 0, +.4],
         [0.4 + 0, -0.5 + .4, 0],
         [0.4 + 0, -0.5 - .4, 0],
 
-        [+2, -1, +2],
+        [+2, -1, +2], // 6
         [+2, -1, -2],
         [-2, -1, +2],
         [-2, -1, -2],
@@ -21,7 +21,7 @@ const octahedron = {
         [-2, +1, +2],
         [-2, +1, -2],
 
-        [+.3, .99, +.3],
+        [+.3, .99, +.3], // 14
         [+.3, .99, -.3],
         [-.3, .99, +.3],
         [-.3, .99, -.3],
@@ -36,34 +36,34 @@ const octahedron = {
     ],
     tris: [
         // Octahedron
-        { vert: [5, 1, 3], materialIndex: 0 },
-        { vert: [5, 3, 2], materialIndex: 1 },
-        { vert: [5, 2, 4], materialIndex: 4 },
-        { vert: [5, 4, 1], materialIndex: 4 },
-        { vert: [6, 3, 1], materialIndex: 2 },
-        { vert: [6, 2, 3], materialIndex: 3 },
-        { vert: [6, 4, 2], materialIndex: 4 },
-        { vert: [6, 1, 4], materialIndex: 4 },
+        { vert: [4, 0, 2], materialIndex: 0 },
+        { vert: [4, 2, 1], materialIndex: 1 },
+        { vert: [4, 1, 3], materialIndex: 4 },
+        { vert: [4, 3, 0], materialIndex: 4 },
+        { vert: [5, 2, 0], materialIndex: 2 },
+        { vert: [5, 1, 2], materialIndex: 3 },
+        { vert: [5, 3, 1], materialIndex: 4 },
+        { vert: [5, 0, 3], materialIndex: 4 },
         // Room
-        { vert: [7, 8, 9], materialIndex: 4 },
-        { vert: [10, 9, 8], materialIndex: 4 },
-        { vert: [7, 9, 13], materialIndex: 4 },
-        { vert: [7, 13, 11], materialIndex: 4 },
-        { vert: [10, 14, 13], materialIndex: 0 },
-        { vert: [10, 13, 9], materialIndex: 0 },
-        { vert: [8, 7, 11], materialIndex: 1 },
-        { vert: [12, 8, 11], materialIndex: 1 },
-        { vert: [14, 10, 8], materialIndex: 4 },
-        { vert: [8, 12, 14], materialIndex: 4 },
-        { vert: [12, 11, 13], materialIndex: 4 },
-        { vert: [13, 14, 12], materialIndex: 4 },
+        { vert: [6, 7, 8], materialIndex: 4 },
+        { vert: [9, 8, 7], materialIndex: 4 },
+        { vert: [6, 8, 12], materialIndex: 4 },
+        { vert: [6, 12, 10], materialIndex: 4 },
+        { vert: [9, 13, 12], materialIndex: 0 },
+        { vert: [9, 12, 8], materialIndex: 0 },
+        { vert: [7, 6, 10], materialIndex: 1 },
+        { vert: [11, 7, 10], materialIndex: 1 },
+        { vert: [13, 9, 7], materialIndex: 4 },
+        { vert: [7, 11, 13], materialIndex: 4 },
+        { vert: [11, 10, 12], materialIndex: 4 },
+        { vert: [12, 13, 11], materialIndex: 4 },
         // Lamp
-        { vert: [16, 15, 17], materialIndex: 5 },
-        { vert: [17, 18, 16], materialIndex: 5 },
+        { vert: [15, 14, 16], materialIndex: 5 },
+        { vert: [16, 17, 15], materialIndex: 5 }
     ]
 } as Geometry;
 
-const bounceLimit = 4, raysPerPixel = 4, maxIteration = 100;
+const bounceLimit = 3, raysPerPixel = 10, maxIteration = 10;
 
 async function main() {
     const wrapper = document.createElement('div');
