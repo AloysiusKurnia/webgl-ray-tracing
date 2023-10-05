@@ -7,11 +7,14 @@ precision highp isampler2D;
 
 in vec2 tracingCoordinates;
 in vec2 pixelMap;
+in vec2 texCoord;
 
 uniform sampler2D floatArrayUniform;
 uniform isampler2D integerArrayUniform;
+uniform sampler2D previousFrame;
 
 uniform float raySourceDistance;
+uniform float iteration;
 uniform vec2 screenSize;
 uniform float seed;
 
@@ -280,5 +283,6 @@ void main() {
     for(uint i = 0u; i < raysPerPixel; i++) {
         color += runRayTracing(randomState, bounceLimit);
     }
-    outColor = vec4(color / float(raysPerPixel), 1);
+    vec4 prevPixelColor = texture(previousFrame, texCoord);
+    outColor = (prevPixelColor * (iteration - 1.) + vec4(color / float(raysPerPixel), 1)) / iteration;
 }

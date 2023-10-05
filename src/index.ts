@@ -32,7 +32,7 @@ const octahedron = {
         { color: [0, 0, 1], emissionStrength: -1, roughness: 1 },
         { color: [1, 1, 0], emissionStrength: -1, roughness: 1 },
         { color: [1, 1, 1], emissionStrength: -1, roughness: 1 },
-        { color: [1, 1, 1], emissionStrength: 100, roughness: 0 },
+        { color: [1, 1, 1], emissionStrength: 50, roughness: 0 },
     ],
     tris: [
         // Octahedron
@@ -63,7 +63,7 @@ const octahedron = {
     ]
 } as Geometry;
 
-const bounceLimit = 3, raysPerPixel = 50, maxIteration = 200;
+const bounceLimit = 3, raysPerPixel = 20, maxIteration = 800;
 
 async function main() {
     const wrapper = document.createElement('div');
@@ -72,8 +72,8 @@ async function main() {
     statusBar.innerText = 'Tap the canvas to start rendering.';
     wrapper.id = 'wrapper';
     function updateStatusBar(msg: string) { statusBar.innerText = msg; }
-    canvas.height = 100;
-    canvas.width = 100;
+    canvas.width = 500;
+    canvas.height = 300;
 
     wrapper.appendChild(canvas);
     wrapper.appendChild(statusBar);

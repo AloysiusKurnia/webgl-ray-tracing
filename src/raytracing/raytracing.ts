@@ -1,6 +1,5 @@
 import * as twgl from 'externals/twgl';
 
-import accumF from 'shaders/accum.frag';
 import plainF from 'shaders/plain.frag';
 import traceF from 'shaders/trace.frag';
 import colorF from 'shaders/color.frag';
@@ -25,12 +24,10 @@ export function raytrace(
 
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
     const plainProgram = twgl.createProgramInfo(gl, [vertexSource, plainF]);
-    const accumProgram = twgl.createProgramInfo(gl, [vertexSource, accumF]);
     const colorProgram = twgl.createProgramInfo(gl, [vertexSource, colorF]);
 
     const tracingFrame = twgl.createFramebufferInfo(gl);
     const previousFrame = twgl.createFramebufferInfo(gl);
-    const currentFrame = twgl.createFramebufferInfo(gl);
 
     const floatArrayUniform = twgl.createTexture(gl, {
         mag: gl.NEAREST, min: gl.NEAREST,
@@ -52,9 +49,6 @@ export function raytrace(
     });
     gl.useProgram(plainProgram.program);
     twgl.setBuffersAndAttributes(gl, plainProgram, geometry);
-
-    gl.useProgram(accumProgram.program);
-    twgl.setBuffersAndAttributes(gl, accumProgram, geometry);
 
     gl.useProgram(traceProgram.program);
     twgl.setBuffersAndAttributes(gl, traceProgram, geometry);
@@ -78,36 +72,28 @@ export function raytrace(
     }
     const startTime = Date.now();
     let iteration = 1;
-    selectFrame(currentFrame);
+    selectFrame(previousFrame);
     useProgram(colorProgram);
     twgl.setUniforms(colorProgram, { color: [0, 0, 0] });
     draw();
     const render = () => {
-        // Render current frame to previous frame.
-        selectFrame(previousFrame);
-        useProgram(plainProgram);
-        twgl.setUniforms(plainProgram, {
-            tex: currentFrame.attachments[0]
-        });
-        draw();
-
         // Render ray tracing.
         selectFrame(tracingFrame);
         useProgram(traceProgram);
         twgl.setUniforms(traceProgram, {
+            previousFrame: previousFrame.attachments[0],
+            iteration,
             floatArrayUniform,
             integerArrayUniform,
             seed: Math.random() * 65536
         });
         draw();
 
-        // Accumulate with previous frame.
-        selectFrame(currentFrame);
-        useProgram(accumProgram);
-        twgl.setUniforms(accumProgram, {
-            currentFrame: tracingFrame.attachments[0],
-            previousFrame: previousFrame.attachments[0],
-            iteration
+        // Move it to previous frame.
+        selectFrame(previousFrame);
+        useProgram(plainProgram);
+        twgl.setUniforms(plainProgram, {
+            tex: tracingFrame.attachments[0]
         });
         draw();
 
@@ -115,7 +101,7 @@ export function raytrace(
         selectFrame(null!);
         useProgram(plainProgram);
         twgl.setUniforms(plainProgram, {
-            tex: currentFrame.attachments[0]
+            tex: tracingFrame.attachments[0]
         });
         draw();
 
