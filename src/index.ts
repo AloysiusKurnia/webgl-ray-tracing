@@ -1,7 +1,19 @@
 import { buildEncodedBVHTree } from "raytracing/geometry/bvh";
 import { Geometry, compileGeometry, createBBoxFromTri } from "raytracing/geometry/geometry";
+import { readObj } from "raytracing/geometry/obj";
 import { raytrace } from "raytracing/raytracing";
 
+import objFile from '../objs/untitled.obj';
+
+const shape = readObj(objFile, {
+    base: { color: [0.8, 0.8, 0.8], emissionStrength: -1, roughness: 1 },
+    light: { color: [1, 1, 1], emissionStrength: 20, roughness: 1 },
+    left: { color: [1, 0, 0], emissionStrength: -1, roughness: 1 },
+    right: { color: [0, 1, 1], emissionStrength: -1, roughness: 1 },
+    purple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 1 },
+    glossyPurple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 0.6 },
+    floor: { color: [0.8, 0.8, 0.8], emissionStrength: -1, roughness: 0 },
+});
 
 const octahedron = {
     verts: [
@@ -63,9 +75,10 @@ const octahedron = {
     ]
 } as Geometry;
 
-const bounceLimit = 3, raysPerPixel = 10, maxIteration = 10;
+const bounceLimit = 5, raysPerPixel = 1, maxIteration = 200;
 
 async function main() {
+    const selectedShape = shape;
     const wrapper = document.createElement('div');
     const canvas = document.createElement('canvas');
     const statusBar = document.createElement('div');
@@ -79,11 +92,11 @@ async function main() {
     wrapper.appendChild(statusBar);
     document.body.appendChild(wrapper);
 
-    const bbox = octahedron.tris.map(
-        (tri) => createBBoxFromTri(octahedron.verts, tri.vert)
+    const bbox = selectedShape.tris.map(
+        (tri) => createBBoxFromTri(selectedShape.verts, tri.vert)
     );
     const boundingBoxData = buildEncodedBVHTree(bbox);
-    const triangles = compileGeometry(octahedron);
+    const triangles = compileGeometry(selectedShape);
 
     let resolver: () => void;
     await new Promise<void>((res) => {
@@ -95,7 +108,7 @@ async function main() {
 
     raytrace(canvas, {
         triangles,
-        materials: octahedron.materials,
+        materials: selectedShape.materials,
         boundingBoxData
     }, {
         bounceLimit,

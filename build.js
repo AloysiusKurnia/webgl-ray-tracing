@@ -8,7 +8,7 @@ const buildSettings = {
     sourcemap: true,
     target: 'es2020',
     external: ['externals/*'],
-    loader: { '.vert': 'text', '.frag': 'text' }
+    loader: { '.vert': 'text', '.frag': 'text', '.obj': 'text' }
 };
 
 async function main(watch) {

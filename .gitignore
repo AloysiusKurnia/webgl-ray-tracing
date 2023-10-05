@@ -1,3 +1,5 @@
 dist/
 node_modules/
-objs/
+*.blend
+*.blend1
+*.mtl
