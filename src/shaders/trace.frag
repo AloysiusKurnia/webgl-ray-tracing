@@ -40,6 +40,7 @@ struct TraceOutput {
 struct Ray {
     vec3 origin;
     vec3 direction;
+    vec3 directionInverse;
 };
 
 struct IntersectionResult {
@@ -51,7 +52,7 @@ struct IntersectionResult {
 
 // Floats
 // 0-2 | Triangle vertices
-// 3   | Triangle normal [unused]
+// 3   | Triangle normal
 // 4   | Material color
 // 5   | Material specular color [unused]
 // 6   | [Material roughness, Material emission strength, -]
@@ -82,6 +83,10 @@ vec3[3] getTri(int index) {
     vec3 v1 = fetchFloatArray(index, 1).rgb;
     vec3 v2 = fetchFloatArray(index, 2).rgb;
     return vec3[](v0, v1, v2);
+}
+
+vec3 getTriNormal(int index) {
+    return fetchFloatArray(index, 3).rgb;
 }
 
 vec3[2] getBoundingBoxDimension(int index) {
@@ -121,9 +126,8 @@ vec3 randomDirection(inout uint randomState) {
 // INTERSECTION ===============================================================
 const float INFINITY = 1. / 0.;
 float intersectBox(vec3[2] box, Ray ray, float tminUpperBound) {
-    vec3 inv_direction = 1.0 / ray.direction;
-    vec3 t1 = (box[0] - ray.origin) * inv_direction;
-    vec3 t2 = (box[1] - ray.origin) * inv_direction;
+    vec3 t1 = (box[0] - ray.origin) * ray.directionInverse;
+    vec3 t2 = (box[1] - ray.origin) * ray.directionInverse;
 
     vec3 tminVec = min(t1, t2);
     vec3 tmaxVec = max(t1, t2);
@@ -168,11 +172,12 @@ float intersectTri(vec3[3] verts, Ray ray) {
     return dist;
 }
 
-// Behold, the hackiest of the hacks \:D/
+// Travel through BVH tree.
 IntersectionResult findNearestIntersection(Ray ray) {
     int nodeIndex = 0;
     int depthMod8 = 0, depthDiv8 = 0;
-    // A stack of 24 binary values, shared into 3 8-bit octets.
+    // A stack of 24 booleans, shared into 3 8-bit octets.
+    // If the BVH tree has a depth of more than 24, God help us all.
     uint[] stack = uint[](0u, 0u, 0u);
     float nearestDist = INFINITY;
     int nearestTriIndex = -1;
@@ -180,7 +185,6 @@ IntersectionResult findNearestIntersection(Ray ray) {
         bool shouldFloat = true;
         int rightChildIndex = getBoundingBoxRightChild(nodeIndex);
 
-        // Check the intersection of ray with this node.
         vec3[2] box = getBoundingBoxDimension(nodeIndex);
         float dist = intersectBox(box, ray, nearestDist);
         if(dist > 0.) {
@@ -249,10 +253,7 @@ TraceOutput singleTrace(Ray ray) {
     float distanceToNearestShape = result.dist;
 
     vec3 newOrigin = distanceToNearestShape * ray.direction + ray.origin;
-    vec3 normal;
-    vec3[3] tri = getTri(nearestShapeIndex);
-    normal = cross(tri[1] - tri[0], tri[2] - tri[0]);
-    normal /= length(normal);
+    vec3 normal = getTriNormal(nearestShapeIndex);
     return TraceOutput(nearestShapeIndex, newOrigin, normal);
 }
 
@@ -262,7 +263,7 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
     vec3 rayColor = vec3(1);
     vec3 incomingLight = vec3(0);
     for(uint i = 0u; i < maxBounces; i++) {
-        TraceOutput traceResult = singleTrace(Ray(raySource, direction));
+        TraceOutput traceResult = singleTrace(Ray(raySource, direction, 1. / direction));
         if(traceResult.hitGeometryIndex == -1) {
             outColor = vec4(0, 0, 0, 1);
             return incomingLight;
