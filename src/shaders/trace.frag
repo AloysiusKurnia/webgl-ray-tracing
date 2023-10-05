@@ -117,21 +117,21 @@ vec3 randomDirection(inout uint randomState) {
 
 // INTERSECTION ===============================================================
 const float INFINITY = 1. / 0.;
-float intersectBox(vec3[2] box, Ray ray) {
+float intersectBox(vec3[2] box, Ray ray, float tminUpperBound) {
     vec3 inv_direction = 1.0 / ray.direction;
     vec3 t1 = (box[0] - ray.origin) * inv_direction;
     vec3 t2 = (box[1] - ray.origin) * inv_direction;
 
-    vec3 tmin = min(t1, t2);
-    vec3 tmax = max(t1, t2);
+    vec3 tminVec = min(t1, t2);
+    vec3 tmaxVec = max(t1, t2);
 
-    float max_tmin = max(max(tmin.x, tmin.y), tmin.z);
-    float min_tmax = min(min(tmax.x, tmax.y), tmax.z);
+    float tmin = max(max(tminVec.x, tminVec.y), tminVec.z);
+    float tmax = min(min(tmaxVec.x, tmaxVec.y), tmaxVec.z);
 
-    if(min_tmax < max_tmin) {
+    if(tmax < tmin || tmin > tminUpperBound) {
         return -1.;
     }
-    return min_tmax;
+    return tmax;
 }
 
 // Moeller-Trumbore intersection
@@ -179,7 +179,7 @@ IntersectionResult findNearestIntersection(Ray ray) {
 
         // Check the intersection of ray with this node.
         vec3[2] box = getBoundingBoxDimension(nodeIndex);
-        float dist = intersectBox(box, ray);
+        float dist = intersectBox(box, ray, nearestDist);
         if(dist > 0.) {
             // Check if this node is a leaf node.
             if(rightChildIndex < 1) {
@@ -201,14 +201,15 @@ IntersectionResult findNearestIntersection(Ray ray) {
             // Go to the last node that has the bit indicator 0
             do {
                 depthMod8 -= 1;
-                if (depthMod8 == -1) {
+                if(depthMod8 == -1) {
                     depthMod8 = 7;
                     depthDiv8 -= 1;
+                    if(depthDiv8 == -1) {
+                        break;
+                    }
                     octet = stack[depthDiv8];
                 }
-                if(depthDiv8 == -1) {
-                    break;
-                }
+
                 bitMask = 1u << depthMod8;
                 nodeIndex = getBoundingBoxParent(nodeIndex);
             } while((octet & bitMask) != 0u);
@@ -224,7 +225,7 @@ IntersectionResult findNearestIntersection(Ray ray) {
         // This node is a branch node and haven't traveled to the left.
         // Can't prove that last statement though. :P
         depthMod8 += 1;
-        if (depthMod8 > 7) {
+        if(depthMod8 > 7) {
             depthDiv8 += 1;
             depthMod8 = 0;
         }
