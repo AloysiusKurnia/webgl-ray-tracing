@@ -63,7 +63,7 @@ const octahedron = {
     ]
 } as Geometry;
 
-const bounceLimit = 3, raysPerPixel = 20, maxIteration = 800;
+const bounceLimit = 4, raysPerPixel = 4, maxIteration = 100;
 
 async function main() {
     const wrapper = document.createElement('div');

@@ -168,7 +168,7 @@ float intersectTri(vec3[3] verts, Ray ray) {
 // Behold, the hackiest of the hacks \:D/
 IntersectionResult findNearestIntersection(Ray ray) {
     int nodeIndex = 0;
-    int depth = 0;
+    int depthMod8 = 0, depthDiv8 = 0;
     // A stack of 24 binary values, shared into 3 8-bit octets.
     uint[] stack = uint[](0u, 0u, 0u);
     float nearestDist = INFINITY;
@@ -197,34 +197,42 @@ IntersectionResult findNearestIntersection(Ray ray) {
         }
         int nextDestination = nodeIndex + 1;
         if(shouldFloat) {
-            uint octet, bitMask;
+            uint octet = stack[depthDiv8], bitMask = 1u << depthMod8;
             // Go to the last node that has the bit indicator 0
             do {
-                depth -= 1;
-                if(depth == -1) {
+                depthMod8 -= 1;
+                if (depthMod8 == -1) {
+                    depthMod8 = 7;
+                    depthDiv8 -= 1;
+                    octet = stack[depthDiv8];
+                }
+                if(depthDiv8 == -1) {
                     break;
                 }
-                octet = stack[depth >> 3];
-                bitMask = 1u << (depth & 7);
+                bitMask = 1u << depthMod8;
                 nodeIndex = getBoundingBoxParent(nodeIndex);
             } while((octet & bitMask) != 0u);
 
-            if(depth == -1) {
+            if(depthDiv8 == -1) {
                 // The algorithm is done.
                 break;
             }
             // Set this node as 'having its left node visited'.
-            stack[depth >> 3] = stack[depth >> 3] | 1u << (depth & 7);
+            stack[depthDiv8] = octet | bitMask;
             nextDestination = getBoundingBoxRightChild(nodeIndex);
         }
         // This node is a branch node and haven't traveled to the left.
         // Can't prove that last statement though. :P
-        depth += 1;
+        depthMod8 += 1;
+        if (depthMod8 > 7) {
+            depthDiv8 += 1;
+            depthMod8 = 0;
+        }
         nodeIndex = nextDestination;
-        uint octet = stack[depth >> 3];
-        uint bitMask = 1u << (depth & 7);
+        uint octet = stack[depthDiv8];
+        uint bitMask = 1u << depthMod8;
         // Set that node to mark that its left child is not yet visited
-        stack[depth >> 3] = octet & ~bitMask;
+        stack[depthDiv8] = octet & ~bitMask;
     }
     return IntersectionResult(nearestTriIndex, nearestDist);
 }
