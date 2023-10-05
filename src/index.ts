@@ -11,8 +11,8 @@ const shape = readObj(objFile, {
     left: { color: [1, 0, 0], emissionStrength: -1, roughness: 1 },
     right: { color: [0, 1, 1], emissionStrength: -1, roughness: 1 },
     purple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 1 },
-    glossyPurple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 0.6 },
-    floor: { color: [0.8, 0.8, 0.8], emissionStrength: -1, roughness: 0 },
+    glossyPurple: { color: [0.8, 0.2, 1], emissionStrength: -1, roughness: 0.3 },
+    floor: { color: [1, 1, 1], emissionStrength: -1, roughness: 0.1 },
 });
 
 const octahedron = {
@@ -75,7 +75,7 @@ const octahedron = {
     ]
 } as Geometry;
 
-const bounceLimit = 5, raysPerPixel = 1, maxIteration = 200;
+const bounceLimit = 4, raysPerPixel = 4, maxIteration = 250;
 
 async function main() {
     const selectedShape = shape;

@@ -28,6 +28,7 @@ out vec4 outColor;
 struct Material {
     vec3 color;
     float emissionStrength;
+    float roughness;
 };
 
 struct TraceOutput {
@@ -70,8 +71,10 @@ Material triMaterial(int index) {
     int materialIndex = fetchIntegerArray(index, 0).g;
 
     vec3 color = fetchFloatArray(materialIndex, 4).rgb;
-    float emission = fetchFloatArray(materialIndex, 6).g;
-    return Material(color, emission);
+    vec4 row6 = fetchFloatArray(materialIndex, 6);
+    float emission = row6.g;
+    float roughness = row6.r;
+    return Material(color, emission, roughness);
 }
 
 vec3[3] getTri(int index) {
@@ -273,9 +276,11 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
             incomingLight += emittedLight * rayColor;
             break;
         }
-        direction = normalize(traceResult.normal + randomDirection(randomState));
-        rayColor *= material.color;
+        vec3 diffuseDir = normalize(traceResult.normal + randomDirection(randomState));
+        vec3 specularDir = reflect(direction, traceResult.normal);
+        direction = normalize(mix(specularDir, diffuseDir, material.roughness));
 
+        rayColor *= material.color;
         raySource = traceResult.newOrigin;
     }
     return incomingLight;
