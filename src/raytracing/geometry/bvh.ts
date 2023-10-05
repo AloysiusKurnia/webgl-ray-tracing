@@ -218,8 +218,9 @@ class BVHNodeImpl<T extends BoundingBox> implements BVHTreeNode<T> {
         oppositeNode.recalculateHeight();
         this.recalculateHeight();
 
-        r.recalculateBoundingBox();
-        l.recalculateBoundingBox();
+        nearNode.recalculateBoundingBox();
+        swapNode.recalculateBoundingBox();
+        oppositeNode.recalculateBoundingBox();
 
     }
 
