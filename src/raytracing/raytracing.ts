@@ -3,6 +3,7 @@ import * as twgl from 'externals/twgl';
 import accumF from 'shaders/accum.frag';
 import plainF from 'shaders/plain.frag';
 import traceF from 'shaders/trace.frag';
+import colorF from 'shaders/color.frag';
 import vertexSource from 'shaders/vert.vert';
 
 import { RenderUniformData, generateUniformData } from './structure/data-writer';
@@ -25,6 +26,7 @@ export function raytrace(
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
     const plainProgram = twgl.createProgramInfo(gl, [vertexSource, plainF]);
     const accumProgram = twgl.createProgramInfo(gl, [vertexSource, accumF]);
+    const colorProgram = twgl.createProgramInfo(gl, [vertexSource, colorF]);
 
     const tracingFrame = twgl.createFramebufferInfo(gl);
     const previousFrame = twgl.createFramebufferInfo(gl);
@@ -76,6 +78,10 @@ export function raytrace(
     }
     const startTime = Date.now();
     let iteration = 1;
+    selectFrame(currentFrame);
+    useProgram(colorProgram);
+    twgl.setUniforms(colorProgram, { color: [0, 0, 0] });
+    draw();
     const render = () => {
         // Render current frame to previous frame.
         selectFrame(previousFrame);

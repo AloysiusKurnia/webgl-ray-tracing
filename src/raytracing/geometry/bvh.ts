@@ -346,10 +346,6 @@ export function buildBVHTree<T extends BoundingBox>(boxes: T[]): BVHTreeNode<T> 
         const bestPair = findBest(root, entry, heapCache);
         bestPair.insertSibling(entry);
     }
-    console.log(visualizeTree(root)
-        .split('\n')
-        .map((s, i) => `${i.toString().padStart(2)} ${s}`)
-        .join('\n'));
 
     return root;
 }
