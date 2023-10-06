@@ -1,5 +1,5 @@
 import { buildEncodedBVHTree } from "raytracing/geometry/bvh";
-import { Geometry, compileGeometry, createBBoxFromTri } from "raytracing/geometry/geometry";
+import { compileGeometry, createBBoxFromTri } from "raytracing/geometry/geometry";
 import { readObj } from "raytracing/geometry/obj";
 import { raytrace } from "raytracing/raytracing";
 
@@ -7,15 +7,15 @@ import objFile from '../objs/untitled.obj';
 
 const shape = readObj(objFile, {
     base: { color: [0.8, 0.8, 0.8], emissionStrength: -1, roughness: 1 },
-    light: { color: [1, 1, 1], emissionStrength: 20, roughness: 1 },
-    left: { color: [1, 0, 0], emissionStrength: -1, roughness: 1 },
-    right: { color: [0, 1, 1], emissionStrength: -1, roughness: 1 },
+    light: { color: [1, 1, 1], emissionStrength: 10, roughness: 1 },
+    left: { color: [1, 0, 0], emissionStrength: -1, roughness: 0 },
+    right: { color: [0, 1, 1], emissionStrength: -1, roughness: 0 },
     purple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 1 },
-    glossyPurple: { color: [0.8, 0.2, 1], emissionStrength: -1, roughness: 0.3 },
-    floor: { color: [1, 1, 1], emissionStrength: -1, roughness: 0.1 },
+    glossyPurple: { color: [0.8, 0.2, 1], emissionStrength: 1.5, roughness: 0 },
+    floor: { color: [1, 1, 1], emissionStrength: -1, roughness: 0.3 },
 });
 
-const bounceLimit = 4, raysPerPixel = 4, maxIteration = 250;
+const bounceLimit = 4, raysPerPixel = 5, maxIteration = 400;
 
 async function main() {
     const selectedShape = shape;
