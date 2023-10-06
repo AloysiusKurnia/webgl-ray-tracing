@@ -18,6 +18,9 @@ uniform float iteration;
 uniform vec2 screenSize;
 uniform float seed;
 
+uniform vec3 skyColorZenith;
+uniform vec3 skyColorHorizon;
+
 uniform uint bounceLimit;
 uniform uint raysPerPixel;
 
@@ -257,6 +260,13 @@ TraceOutput singleTrace(Ray ray) {
     return TraceOutput(nearestShapeIndex, newOrigin, normal);
 }
 
+vec3 getSkyColor(vec3 rayDir) {
+    float t = pow(smoothstep(.0, .4, rayDir.y), 0.35);
+    vec3 skyGradient = mix(skyColorHorizon, skyColorZenith, t);
+
+    return skyGradient;
+}
+
 vec3 runRayTracing(inout uint randomState, uint maxBounces) {
     vec3 raySource = vec3(0, 0, -raySourceDistance);
     vec3 direction = normalize(vec3(tracingCoordinates, 0) - raySource);
@@ -265,9 +275,7 @@ vec3 runRayTracing(inout uint randomState, uint maxBounces) {
     for(uint i = 0u; i < maxBounces; i++) {
         TraceOutput traceResult = singleTrace(Ray(raySource, direction, 1. / direction));
         if(traceResult.hitGeometryIndex == -1) {
-            outColor = vec4(0, 0, 0, 1);
-            return incomingLight;
-            break;
+            return incomingLight + getSkyColor(direction) * rayColor;
         }
         Material material = triMaterial(traceResult.hitGeometryIndex);
 

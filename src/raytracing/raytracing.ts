@@ -56,7 +56,9 @@ export function raytrace(
         raySourceDistance: 10, screenMultiplier: 2,
         triAmount: 8,
         screenSize: [canvas.width, canvas.height],
-        bounceLimit, raysPerPixel
+        bounceLimit, raysPerPixel,
+        skyColorZenith: [0.76, 0.93, 0.89],
+        skyColorHorizon: [0.39, 0.63, 0.85],
     });
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
