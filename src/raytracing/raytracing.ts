@@ -18,8 +18,11 @@ export function raytrace(
     updateStatusBar: (s: string) => void
 ) {
     const { bounceLimit, raysPerPixel, maxIteration } = renderOptions;
-    const gl = canvas.getContext("webgl2")!;
-
+    const gl = canvas.getContext("webgl2");
+    if (!gl) {
+        updateStatusBar(`Your browser doesn't support WebGL :(`)
+        return;
+    }
     const dataArray = generateUniformData(data);
 
     const traceProgram = twgl.createProgramInfo(gl, [vertexSource, traceF]);
@@ -63,15 +66,15 @@ export function raytrace(
 
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    function draw() {
+    const draw = () => {
         twgl.drawBufferInfo(gl, geometry, gl.TRIANGLE_STRIP);
-    }
-    function useProgram(programInfo: twgl.ProgramInfo) {
+    };
+    const useProgram = (programInfo: twgl.ProgramInfo) => {
         gl.useProgram(programInfo.program);
-    }
-    function selectFrame(frame: twgl.FramebufferInfo) {
+    };
+    const selectFrame = (frame: twgl.FramebufferInfo) => {
         twgl.bindFramebufferInfo(gl, frame);
-    }
+    };
     const startTime = Date.now();
     let iteration = 1;
     selectFrame(previousFrame);
