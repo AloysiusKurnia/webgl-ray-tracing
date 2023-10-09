@@ -120,10 +120,16 @@ float random(inout uint state) {
 
 const float PI = 3.1415926538;
 vec3 randomDirection(inout uint randomState) {
-    float z = 2.0 * random(randomState) - 1.0;
-    float angle = random(randomState) * 2.0 * PI;
+    float z = 2. * random(randomState) - 1.0;
+    float angle = random(randomState) * 2. * PI;
     float sliceRadius = sqrt(1.0 - z * z);
     return vec3(sliceRadius * sin(angle), sliceRadius * cos(angle), z);
+}
+
+vec2 randomPointInCircle(inout uint randomState, float radius) {
+    float ringRadius = radius * sqrt(random(randomState));
+    float angle = random(randomState) * 2. * PI;
+    return vec2(ringRadius * cos(angle), ringRadius * sin(angle));
 }
 
 // INTERSECTION ===============================================================
@@ -268,8 +274,8 @@ vec3 getSkyColor(vec3 rayDir) {
 }
 
 vec3 runRayTracing(inout uint randomState, uint maxBounces) {
-    vec3 raySource = vec3(0, 0, -raySourceDistance);
-    vec3 direction = normalize(vec3(tracingCoordinates, 0) - raySource);
+    vec3 raySource = vec3(randomPointInCircle(randomState, 0.1), -raySourceDistance);
+    vec3 direction = normalize(vec3(tracingCoordinates + randomPointInCircle(randomState, 0.0009), 0) - raySource);
     vec3 rayColor = vec3(1);
     vec3 incomingLight = vec3(0);
     for(uint i = 0u; i < maxBounces; i++) {
@@ -307,5 +313,6 @@ void main() {
         color += runRayTracing(randomState, bounceLimit);
     }
     vec4 prevPixelColor = texture(previousFrame, texCoord);
-    outColor = (prevPixelColor * (iteration - 1.) + vec4(color / float(raysPerPixel), 1)) / iteration;
+    vec3 averageColor = color / float(raysPerPixel);
+    outColor = (prevPixelColor * (iteration - 1.) + vec4(averageColor, 1)) / iteration;
 }

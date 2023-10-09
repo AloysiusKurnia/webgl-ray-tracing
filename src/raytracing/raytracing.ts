@@ -76,7 +76,7 @@ export function raytrace(
     let iteration = 1;
     selectFrame(previousFrame);
     useProgram(colorProgram);
-    twgl.setUniforms(colorProgram, { color: [0, 0, 0] });
+    twgl.setUniforms(colorProgram, { color: [1, 0, 0] });
     draw();
     const render = () => {
         // Render ray tracing.

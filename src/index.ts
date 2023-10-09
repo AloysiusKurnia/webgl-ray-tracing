@@ -6,16 +6,16 @@ import { raytrace } from "raytracing/raytracing";
 import objFile from '../objs/untitled.obj';
 
 const shape = readObj(objFile, {
-    base: { color: [0.8, 0.6, 0.2], emissionStrength: -1, roughness: 1 },
-    light: { color: [0.6, 1, 0.6], emissionStrength: 1.1, roughness: 1 },
-    left: { color: [1, 0, 0], emissionStrength: -1, roughness: 0 },
-    right: { color: [0, 1, 1], emissionStrength: -1, roughness: 0 },
+    base: { color: [0.8, 0.8, 0.8], emissionStrength: -1, roughness: 1 },
+    light: { color: [1, 1, 1], emissionStrength: 10, roughness: 1 },
+    left: { color: [1, 0, 0], emissionStrength: -1, roughness: 0.1 },
+    right: { color: [0, 1, 1], emissionStrength: -1, roughness: 0.1 },
     purple: { color: [0.5, 0, .9], emissionStrength: -1, roughness: 1 },
     glossyPurple: { color: [0.8, 0.2, 1], emissionStrength: 1.5, roughness: 0 },
-    floor: { color: [1, 1, 1], emissionStrength: -1, roughness: 0.7 },
+    floor: { color: [1, 1, 1], emissionStrength: -1, roughness: 0.3 },
 });
 
-const bounceLimit = 4, raysPerPixel = 5, maxIteration = 50;
+const bounceLimit = 4, raysPerPixel = 10, maxIteration = 100;
 
 async function main() {
     const selectedShape = shape;
